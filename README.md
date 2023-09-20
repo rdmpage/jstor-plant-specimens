@@ -31,6 +31,7 @@ To explore links between JSTOR and GBIF I use [Material Examined](https://materi
 
 ### Working
 
+B (fixed)
 BM
 BR (fixed)
 BRLU (fixed)
@@ -49,6 +50,7 @@ MPU
 MSC
 NY (fixed)
 P
+RB (fixed)
 S (fixed)
 SBT (fixed)
 U (fixed)
