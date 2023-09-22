@@ -54,6 +54,7 @@ RB (fixed)
 S (fixed)
 SBT (fixed)
 U (fixed)
+W (fixed)
 WAG (note we need to use `institutionID` as there is no `institutionCode`)
 WU
 
