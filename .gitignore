@@ -3,3 +3,5 @@ jstor.db
 jstor.db-shm
 jstor.db-wal
 .DS_Store
+
+/junk/
