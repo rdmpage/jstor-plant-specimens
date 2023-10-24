@@ -4,6 +4,240 @@ JSTOR’s [Global Plants](https://plants.jstor.org) includes a database of plant
 
 JSTOR uses a DOI-like identifier, e.g. [10.5555/al.ap.specimen.bm000753002](https://plants.jstor.org/stable/10.5555/al.ap.specimen.bm000753002), where `bm000753002` is a combination of herbarium code (see [Global Plants Partners](https://plants.jstor.org/partners)) and the specimen barcode (barcode in this context is a literal barcode, typically visible on the herbarium sheet).
 
+## Challenges
+
+In addition to identifier issues (barcodes not used, related to secondary identifiers, only found on images, etc.) there is the problem of taxonomy. Specimens may be stored under the current name of the species, not the name for which the specimen is a type. For example,  `LL00373047` is a type for “Beloperone sanmartensis” but in GBIF this record is https://www.gbif.org/occurrence/4110152991 and stored under “Justicia rohrii”. There is no mention of this name in the GBIF metadata, but the image of the specimen clearly shows “Beloperone sanmartensis”.http://was.tacc.utexas.edu/fileget?coll=TEX-LL&type=O&filename=sp62952952590483191168.att.jpg
+
+## OccurrenceIDs
+
+These are a hot mess of URLs, URNs, UUIDs, integers etc.
+
+### MBM
+
+OccurrenceID is an integer, but the bibliographic citation field  contains a URL that uses it, e.g. http://herbariovirtualreflora.jbrj.gov.br/reflora/herbarioVirtual/ConsultaPublicoHVUC/ConsultaPublicoHVUC.do?idTestemunho=5110379 (see https://www.gbif.org/occurrence/2996641649).
+
+## Backlinks
+
+https://science.mnhn.fr/institution/um/collection/mpu/item/mpu015018 has link to JSTOR record for same specimen
+
+
+## GBIF Downloads
+
+Experience some problems with GBIF downloads [Downloads failing to include all files in the archive](https://discourse.gbif.org/t/downloads-failing-to-include-all-files-in-the-archive/4159/15), turns out it’s likely a Safari bug for big zip files, so make sure to download files directly, e.g. using `curl`.
+
+## Reading
+
+Anna Svensson; Global Plants and Digital Letters: Epistemological Implications of Digitising the Directors' Correspondence at the Royal Botanic Gardens, Kew. Environmental Humanities 1 May 2015; 6 (1): 73–102. doi: https://doi.org/10.1215/22011919-3615907
+
+Ryan D (2018) Global Plants: A Model of International Collaboration . Biodiversity Information Science and Standards 2: e28233. https://doi.org/10.3897/biss.2.28233
+
+Ryan, D. (2013), THE GLOBAL PLANTS INITIATIVE CELEBRATES ITS ACHIEVEMENTS AND PLANS FOR THE FUTURE. Taxon, 62: 417-418. https://doi.org/10.12705/622.26
+
+(2016), Global Plants Sustainability: The Past, The Present and The Future. Taxon, 65: 1465-1466. https://doi.org/10.12705/656.38
+
+Smith, G.F. and Figueiredo, E. (2013), Type specimens online: What is available, what is not, and how to proceed; Reflections based on an analysis of the images of type specimens of southern African Polygala (Polygalaceae) accessible on the worldwide web. Taxon, 62: 801-806. https://doi.org/10.12705/624.5
+
+
+## Scraping
+
+JSTOR, naturally, doesn’t encourage scraping, nor does it make the data available either through an API or download. Hence there are limits to what we can retrieve. Given that all we want is basic metadata (JSTOR identifier, specimen code, taxonomic name) we can use the search results form to search by genus, but this is limited to approximately 1200 records, so large genera may be incomplete.
+
+## Parsing
+
+Once downloaded the web pages are parsed to extract basic metadata. Taxonomic names are parsed using `taxon_name_parser.php` and the data is loaded into a SQLite database.
+
+## Mapping JSTOR identifiers to GBIF
+
+To explore links between JSTOR and GBIF I use [Material Examined](https://material-examined.herokuapp.com), which attempts to map specimen codes to GBIF records. Below I’ve made notes on how successful this is, and which Herbaria codes require additional work to resolve. Some GBIF records also include a collection-specific URL for the specimen (see, e.g., [CETAF Specimen URI Tester](http://herbal.rbge.info/), which we could also extract. This would enable direct linking to the herbarium web site.
+
+### Working
+
+- AK (fixed)
+- B (fixed)
+- BM
+- BR (fixed)
+- BRLU (fixed)
+- BRIT
+- CANB (has versioning? Such as ‘.1’ as a suffix, can also be ‘.2’)
+- CAS (will get animals too)
+- COL (fixed)
+- F (WTF)
+- GB (fixed)
+- GH
+- GZU
+- JE
+- K
+- L
+- LD
+- LISC (fixed, note that images are poor and not the same as in JSTOR, how come?, e.g. https://www.gbif.org/occurrence/813346859 and https://plants.jstor.org/stable/10.5555/al.ap.specimen.lisc002383)
+- MICH
+- MPU
+- MSC
+- NCU (fixed)
+- NSW
+- NY (fixed)
+- P
+- PC (fixed)
+- RB (fixed)
+- S (fixed)
+- SANT (fixed, has links that go to a movie!? https://www.usc.gal/herbario/?SANT_10130
+- SAV (fixed)
+- SBT (fixed)
+- U (fixed)
+- W (fixed)
+- WAG (note we need to use `institutionID` as there is no `institutionCode`)
+- WU
+
+### Not working (maybe not in GBIF)
+
+- AMES
+- BAA (in GBIF under [Tropicos Specimens Non-MO](https://www.gbif.org/dataset/e053ff53-c156-4e2e-b9b5-4462e9625424), but no code shared with JSTOR (see 10.5555/al.ap.specimen.baa00002080 and https://www.gbif.org/occurrence/4061186547 )
+- BKF
+- C
+- FI
+- GOET
+- HAL (but some records in via MOBOT!?) Also directly via JACQ, e.g. [HAL0099901](https://hal.jacq.org/HAL0099901)
+- HUA in GBIF but not barcodes, would need to match on collectors
+- IFAN not in GBIF
+- KEP
+- LE (Tropicos non MO but no match on barcode, match on collector number)
+- LIL
+- MU
+- PH
+- S
+- SAM (in GBIF but no institution code, e.g. https://www.gbif.org/occurrence/3708366841)
+- SBBG (they have old JSTOR codes in Darwin Core records)
+- SING (hosted by Oxford https://herbaria.plants.ox.ac.uk/bol/sing )
+- UC
+- WIS (mostly not in GBIF, except US material)
+- WSY
+
+### Special cases
+
+#### C
+
+C10007766 is https://www.gbif.org/occurrence/125812836 (I think), no shared identifiers, but text looks similar, maybe match notes?
+
+Likewise C10017788 is likely https://www.gbif.org/occurrence/125813592 WHY no images?
+
+#### F
+
+F0BN009917 matches https://www.gbif.org/occurrence/1211544277, which has institution code ‘B’, so Darwin Core is seriously borked.
+
+#### G
+
+G00358419 compare with https://www.gbif.org/occurrence/1144699768 (maybe the same thing, but catalog number is `G-G-242139/2`, but see their own database http://www.ville-ge.ch/imagezoom/?fif=cjbiip/cjb19/img_108/G00358418.ptif&cvt=jpeg https://data.gbif.ch/gbif-portal/#/?search_scientificNameQuery=Tarrietia%20amboinensis&search_observation=true&search_recent=true&search_fossil=true&search_living=true&searchPerformed=true&dataDialog=on&dataId=4274293&dataTabIndex=0
+
+Direct links to specimen records:
+
+https://data.gbif.ch/gbif-portal/Search.action#/?dataDialog=on&GBIFCHID=G-G-87689/1
+
+#### M
+
+“M-0241896 / 724056 / 371814” https://www.gbif.org/occurrence/1848902995 which is M0241896 (sigh)
+
+#### MO
+MO-256766 is https://www.gbif.org/occurrence/4032024902, note that 256766 is in the image URL http://images.mobot.org/tropicosthumbnails/Tropicos/345/MO-256766.jpg
+
+#### SBBG
+
+`SBBG000023` is now `SBBG150028`, JSTOR id is preserved in `otherCatalogNumbers`, will need to download and parse files to make the mapping.
+
+#### SING
+
+SING is at Oxford!? Can get image from code:
+
+https://herbaria.plants.ox.ac.uk/bol/SING/image/SING0044039.jpg
+
+Zoomable browser: 
+https://herbaria.plants.ox.ac.uk/bol/SING/image/SING0044039_a.jpg/Zoom?fpi=1
+
+https://herbaria.plants.ox.ac.uk/bol/sing/results
+
+While system (BRAHMS) looks to be a nightmare.
+
+
+#### US
+
+Barcodes are in metadata for the image, will need to download data from GBIF and match on that.
+
+
+## “Stable” identifiers
+
+[CETAF Stable Identifiers (CSI)](https://cetaf.org/best-practices/cetaf-stable-identifiers-csi-2/)
+
+[CETAF Specimen URI Tester](http://herbal.rbge.info/md.php?q=implementers)
+
+Hyam, R.D., Drinkwater, R.E. & Harris, D.J. Stable citations for herbarium specimens on the internet: an illustration from a taxonomic revision of Duboscia (Malvaceae) Phytotaxa 73: 17–30 (2012). [https://doi.org/10.11646/phytotaxa.73.1.4](https://doi.org/10.11646/phytotaxa.73.1.4)
+
+## Downloads
+
+| herbarium | download | notes |
+|--|--|--|
+| SBBG | 0001236-231002084531237 | |
+| | 0001411-231002084531237 |  BODATSA |
+| US | 0005866-230918134249559 | |
+| MO | 0008890-230918134249559 | |
+| BM | 0011098-230918134249559 | |
+| K | 0012338-230918134249559 | |
+| P | 0012346-230918134249559 | |
+| PC | 0012347-230918134249559 | |
+| CAS | 0020513-231002084531237 | CAS Botany (BOT) |
+| | | |
+
+### Bulk matching use SQL
+
+```
+SELECT "UPDATE specimen SET gbif = """ || barcode.gbif || """, occurrenceID = """ || barcode.id || """ WHERE doi=""" || specimen.doi || """;" 
+FROM specimen INNER JOIN barcode ON specimen.code = barcode.barcode 
+WHERE specimen.canonical = barcode.scientificName
+AND specimen.gbif  IS NULL
+AND specimen.herbarium="M";
+```
+
+
+## Matching
+
+In matching records by default I am trying to match BARCODE labels in JSTOR with equivalent information in GBIF. As a check we can also compare taxonomic names, but this gets tricky as specimen may be stored more than one name, the names may vary between JSTOR and GBIF, and simple string comparison can be defeated by things such as gender changes. We do some simple stemming to try and catch these.
+
+Boyle, B., Hopkins, N., Lu, Z. et al. The taxonomic name resolution service: an online tool for automated standardization of plant names. BMC Bioinformatics 14, 16 (2013). https://doi.org/10.1186/1471-2105-14-16
+
+Rees T (2014) Taxamatch, an Algorithm for Near (‘Fuzzy’) Matching of Scientific Names in Taxonomic Databases. PLoS ONE 9(9): e107510. https://doi.org/10.1371/journal.pone.0107510
+
+### Bulk matching
+
+The “oh fuck it” strategy:
+
+```
+SELECT "UPDATE specimen SET gbif = """ || barcode.gbif || """, occurrenceID = """ || barcode.id || """ WHERE doi=""" || specimen.doi || """;" 
+FROM specimen INNER JOIN barcode ON specimen.code = barcode.barcode 
+WHERE specimen.canonical = barcode.canonical
+AND specimen.herbarium="K";
+```
+
+```
+SELECT "UPDATE specimen SET gbif = """ || barcode.gbif || """, occurrenceID = """ || barcode.id || """ WHERE doi=""" || specimen.doi || """;" 
+FROM specimen INNER JOIN barcode ON specimen.code = barcode.barcode 
+WHERE specimen.stored_under_name = barcode.canonical
+AND specimen.herbarium="K";
+```
+
+```
+SELECT "UPDATE specimen SET gbif = """ || barcode.gbif || """, occurrenceID = """ || barcode.id || """ WHERE doi=""" || specimen.doi || """;" 
+FROM specimen INNER JOIN barcode ON specimen.code = barcode.barcode 
+WHERE specimen.stored_under_name = barcode.scientificName
+AND specimen.herbarium="US";
+```
+
+
+
+### Image matching
+
+Since JSTOR has images, and so does GBIF (mostly) we could also use image matching to check matches are correct. We can access JSTOR thumbnails (full images are typically behind a paywall), and gBIF images are freely available. Need simple way to test whether images are the “same”. See https://stackoverflow.com/questions/23982960/fast-and-efficient-way-to-detect-if-two-images-are-visually-identical-in-python as a starting point, especially https://stackoverflow.com/a/73760220
+
+```
+compare -metric phash a00277411.jpg 277411.jpg -compose src delta.png
+
 
 ## Stats
 
@@ -14,6 +248,7 @@ SELECT COUNT(doi) FROM specimen WHERE type_status IS NOT NULL;
 1265103
 1308834
 1354861
+
 
 ### Counts
 
@@ -338,166 +573,6 @@ SELECT COUNT(doi) FROM specimen WHERE type_status IS NOT NULL;
 |NCBS|2|
 |WNC|2|
 |MANK|1|
-
-
-## GBIF Downloads
-
-Experience some problems with GBIF downloads [Downloads failing to include all files in the archive](https://discourse.gbif.org/t/downloads-failing-to-include-all-files-in-the-archive/4159/15), turns out it’s likely a Safari bug for big zip files, so make sure to download files directly, e.g. using `curl`.
-
-## Reading
-
-Anna Svensson; Global Plants and Digital Letters: Epistemological Implications of Digitising the Directors' Correspondence at the Royal Botanic Gardens, Kew. Environmental Humanities 1 May 2015; 6 (1): 73–102. doi: https://doi.org/10.1215/22011919-3615907
-
-Ryan D (2018) Global Plants: A Model of International Collaboration . Biodiversity Information Science and Standards 2: e28233. https://doi.org/10.3897/biss.2.28233
-
-Ryan, D. (2013), THE GLOBAL PLANTS INITIATIVE CELEBRATES ITS ACHIEVEMENTS AND PLANS FOR THE FUTURE. Taxon, 62: 417-418. https://doi.org/10.12705/622.26
-
-(2016), Global Plants Sustainability: The Past, The Present and The Future. Taxon, 65: 1465-1466. https://doi.org/10.12705/656.38
-
-Smith, G.F. and Figueiredo, E. (2013), Type specimens online: What is available, what is not, and how to proceed; Reflections based on an analysis of the images of type specimens of southern African Polygala (Polygalaceae) accessible on the worldwide web. Taxon, 62: 801-806. https://doi.org/10.12705/624.5
-
-
-## Scraping
-
-JSTOR, naturally, doesn’t encourage scraping, nor does it make the data available either through an API or download. Hence there are limits to what we can retrieve. Given that all we want is basic metadata (JSTOR identifier, specimen code, taxonomic name) we can use the search results form to search by genus, but this is limited to approximately 1200 records, so large genera may be incomplete.
-
-## Parsing
-
-Once downloaded the web pages are parsed to extract basic metadata. Taxonomic names are parsed using `taxon_name_parser.php` and the data is loaded into a SQLite database.
-
-## Mapping JSTOR identifiers to GBIF
-
-To explore links between JSTOR and GBIF I use [Material Examined](https://material-examined.herokuapp.com), which attempts to map specimen codes to GBIF records. Below I’ve made notes on how successful this is, and which Herbaria codes require additional work to resolve. Some GBIF records also include a collection-specific URL for the specimen (see, e.g., [CETAF Specimen URI Tester](http://herbal.rbge.info/), which we could also extract. This would enable direct linking to the herbarium web site.
-
-### Working
-
-- AK (fixed)
-- B (fixed)
-- BM
-- BR (fixed)
-- BRLU (fixed)
-- BRIT
-- CANB (has versioning? Such as ‘.1’ as a suffix, can also be ‘.2’)
-- CAS (will get animals too)
-- COL (fixed)
-- F (WTF)
-- GB (fixed)
-- GH
-- GZU
-- JE
-- K
-- L
-- LD
-- MICH
-- MPU
-- MSC
-- NCU (fixed)
-- NSW
-- NY (fixed)
-- P
-- PC (fixed)
-- RB (fixed)
-- S (fixed)
-- SANT (fixed, has links that go to a movie!? https://www.usc.gal/herbario/?SANT_10130
-- SAV (fixed)
-- SBT (fixed)
-- U (fixed)
-- W (fixed)
-- WAG (note we need to use `institutionID` as there is no `institutionCode`)
-- WU
-
-### Not working (maybe not in GBIF)
-
-- AMES
-- BAA (in GBIF under [Tropicos Specimens Non-MO](https://www.gbif.org/dataset/e053ff53-c156-4e2e-b9b5-4462e9625424), but no code shared with JSTOR (see 10.5555/al.ap.specimen.baa00002080 and https://www.gbif.org/occurrence/4061186547 )
-- BKF
-- C
-- FI
-- GOET
-- HAL (but some records in via MOBOT!?) Also directly via JACQ, e.g. [HAL0099901](https://hal.jacq.org/HAL0099901)
-- KEP
-- LE (Tropicos non MO but no match on barcode, match on collector number)
-- LIL
-- MU
-- PH
-- S
-- SAM (in GBIF but no institution code, e.g. https://www.gbif.org/occurrence/3708366841)
-- SBBG (they have old JSTOR codes in Darwin Core records)
-- SING (hosted by Oxford https://herbaria.plants.ox.ac.uk/bol/sing )
-- UC
-- WIS (mostly not in GBIF, except US material)
-- WSY
-
-### Special cases
-
-#### C
-
-C10007766 is https://www.gbif.org/occurrence/125812836 (I think), no shared identifiers, but text looks similar, maybe match notes?
-
-#### F
-
-F0BN009917 matches https://www.gbif.org/occurrence/1211544277, which has institution code ‘B’, so Darwin Core is seriously borked.
-
-#### G
-
-G00358419 compare with https://www.gbif.org/occurrence/1144699768 (maybe the same thing, but catalog number is `G-G-242139/2`, but see their own database http://www.ville-ge.ch/imagezoom/?fif=cjbiip/cjb19/img_108/G00358418.ptif&cvt=jpeg https://data.gbif.ch/gbif-portal/#/?search_scientificNameQuery=Tarrietia%20amboinensis&search_observation=true&search_recent=true&search_fossil=true&search_living=true&searchPerformed=true&dataDialog=on&dataId=4274293&dataTabIndex=0
-
-Direct links to specimen records:
-
-https://data.gbif.ch/gbif-portal/Search.action#/?dataDialog=on&GBIFCHID=G-G-87689/1
-
-#### M
-
-“M-0241896 / 724056 / 371814” https://www.gbif.org/occurrence/1848902995 which is M0241896 (sigh)
-
-#### MO
-MO-256766 is https://www.gbif.org/occurrence/4032024902, note that 256766 is in the image URL http://images.mobot.org/tropicosthumbnails/Tropicos/345/MO-256766.jpg
-
-#### SBBG
-
-`SBBG000023` is now `SBBG150028`, JSTOR id is preserved in `otherCatalogNumbers`, will need to download and parse files to make the mapping.
-
-#### SING
-
-SING is at Oxford!? Can get image from code:
-
-https://herbaria.plants.ox.ac.uk/bol/SING/image/SING0044039.jpg
-
-Zoomable browser: 
-https://herbaria.plants.ox.ac.uk/bol/SING/image/SING0044039_a.jpg/Zoom?fpi=1
-
-https://herbaria.plants.ox.ac.uk/bol/sing/results
-
-While system (BRAHMS) looks to be a nightmare.
-
-
-#### US
-
-Barcodes are in metadata for the image, will need to download data from GBIF and match on that.
-
-
-## “Stable” identifiers
-
-[CETAF Stable Identifiers (CSI)](https://cetaf.org/best-practices/cetaf-stable-identifiers-csi-2/)
-
-[CETAF Specimen URI Tester](http://herbal.rbge.info/md.php?q=implementers)
-
-Hyam, R.D., Drinkwater, R.E. & Harris, D.J. Stable citations for herbarium specimens on the internet: an illustration from a taxonomic revision of Duboscia (Malvaceae) Phytotaxa 73: 17–30 (2012). [https://doi.org/10.11646/phytotaxa.73.1.4](https://doi.org/10.11646/phytotaxa.73.1.4)
-
-## Downloads
-
-| herbarium | download | notes |
-|--|--|--|
-| SBBG | 0001236-231002084531237 | |
-| | 0001411-231002084531237 |  BODATSA |
-| US | 0005866-230918134249559 | |
-| MO | 0008890-230918134249559 | |
-| BM | 0011098-230918134249559 | |
-| K | 0012338-230918134249559 | |
-| P | 0012346-230918134249559 | |
-| PC | 0012347-230918134249559 | |
-| | | |
-
 
 
 
