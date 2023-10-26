@@ -382,6 +382,12 @@ $herbarium = 'MA';
 $herbarium = 'PRE';
 $herbarium = 'E';
 $herbarium = 'NY';
+//$herbarium = 'B';
+//$herbarium = 'MEL';
+//$herbarium = 'CHR';
+//$herbarium = 'S';
+//$herbarium = 'CAS';
+//$herbarium = 'HBG';
 
 $sql = 'SELECT * FROM specimen WHERE herbarium="' . $herbarium . '"';
 
@@ -513,10 +519,43 @@ foreach ($data as $obj)
 				case '8016518a-f762-11e1-a439-00145eb45e9a';
 					break;
 					
+				// Duplicates in NY
+				case '07044577-bd82-4089-9f3a-f4a9d2170b2e':
+					break;
+					
+				// Bizarre case where institution is NY in non-NY
+				// dataset https://www.gbif.org/occurrence/417057002
+				case 'f5de707d-eba1-4f1a-b1df-1a7fa27b1bc7':
+					if ($herbarium == 'NY')
+					{
+					
+					}
+					else
+					{
+						$hits[] = $hit;
+					}
+					break;
+					
+				// MOBOT but not MO
+				case 'e053ff53-c156-4e2e-b9b5-4462e9625424':
+					if ($herbarium == 'NY')
+					{
+					
+					}
+					else
+					{
+						$hits[] = $hit;
+					}
+					break;					
+					
 				// Duplicates in P
 				case 'f9be5570-6943-49b8-b317-9780af40effb':
 					break;
 			
+				// Plazi duplicates messing with original Herbarium
+				// e.g. https://www.gbif.org/occurrence/4068313301
+				case 'a668ab97-169a-43d3-8656-2d97ef8c7bde':
+					break;
 			
 				default:
 					$hits[] = $hit;
@@ -636,163 +675,7 @@ foreach ($data as $obj)
 				
 				$ok = same_name($query_names, $target_names);
 				
-				//exit();
-				
-				
-				/*
-				
-				if (!$ok)
-				{
-					echo "-- Do names match exactly?\n";
-					// names match exactly
-					if (isset($obj->stored_under_name) && isset($response->hits[0]->species))
-					{
-						$query = $obj->stored_under_name;
-						$target = $response->hits[0]->species;
-					
-						// subspecies/variety?
-						if (isset($response->hits[0]->infraspecificEpithet) && $response->hits[0]->infraspecificEpithet != "")
-						{
-							$target .= ' ' . $response->hits[0]->infraspecificEpithet;
-						}
-						
-						echo "-- $query|$target\n";
-				
-						$ok = (strcmp($query, $target) == 0);
-					}
-				}
 
-				if (!$ok)
-				{
-					echo "-- Do names match exactly?\n";
-					// names match exactly
-					if (isset($obj->canonical) && isset($response->hits[0]->species))
-					{
-						$query = $obj->canonical;
-						$target = $response->hits[0]->species;
-					
-						// subspecies/variety?
-						if (isset($response->hits[0]->infraspecificEpithet) && $response->hits[0]->infraspecificEpithet != "")
-						{
-							$target .= ' ' . $response->hits[0]->infraspecificEpithet;
-						}
-						
-						echo "-- $query|$target\n";
-				
-						$ok = (strcmp($query, $target) == 0);
-					}
-				}
-				
-				// 1998327014
-				// GBIF record as both accepted and original name
-				if (!$ok)
-				{
-					// names match exactly
-					if (isset($obj->canonical) && isset($response->hits[0]->genericName) && isset($response->hits[0]->specificEpithet))
-					{
-						$query = $obj->canonical;
-						$target = $response->hits[0]->genericName . ' ' . $response->hits[0]->specificEpithet;
-					
-						// subspecies/variety?
-						if (isset($response->hits[0]->infraspecificEpithet) && $response->hits[0]->infraspecificEpithet != "")
-						{
-							$target .= ' ' . $response->hits[0]->infraspecificEpithet;
-						}
-						
-						//echo "-- $query|$target\n";
-				
-						$ok = (strcmp($query, $target) == 0);
-					}
-				}
-				
-
-				if (!$ok)
-				{
-					// names match either genus or epithet
-					if (isset($obj->stored_under_name) && isset($response->hits[0]->species))
-					{
-						$query = $obj->stored_under_name;
-						$target = $response->hits[0]->species;
-										
-						// subspecies/variety?
-						if (isset($response->hits[0]->infraspecificEpithet) && $response->hits[0]->infraspecificEpithet != "")
-						{
-							$target .= ' ' . $response->hits[0]->infraspecificEpithet;
-						}						
-						
-						echo "-- $query|$target\n";
-					
-						$parts_query = explode(' ', $query);
-						$parts_target = explode(' ', $target);
-						
-						if (count($parts_query) >= 2 && count($parts_target) >= 2)
-						{
-							if (!$ok)
-							{
-								// are stemmed epithets the same?
-								if (strcmp(stem_epithet($parts_query[1]), stem_epithet($parts_target[1])) == 0)
-								{
-									$ok = true;
-								}
-							}
-							
-							if (!$ok)
-							{
-								if (count($parts_query) == 3 && count($parts_target)== 3)
-								{
-									// are stemmed epithets the same?
-									if (strcmp(stem_epithet($parts_query[2]), stem_epithet($parts_target[2])) == 0)
-									{
-										$ok = true;
-									}
-								}
-							}
-
-							if (!$ok)
-							{
-								// do genera match (we are getting desparate)
-								if (strcmp($parts_query[0], $parts_target[0]) == 0)
-								{
-									$ok = true;
-								}
-							}
-						
-						}
-					}
-				}
-				
-				// JSTOR is genus only
-				if (!$ok)
-				{
-					// names match exactly
-					if (isset($obj->stored_under_name) && preg_match('/^[A-Z]\w+$/', $obj->stored_under_name) && isset($response->hits[0]->species))
-					{
-						$query = $obj->stored_under_name;
-						$target = $response->hits[0]->species;
-						
-						echo "-- $query|$target\n";
-									
-						$ok = preg_match('/^' . $query . '/', $target);
-					}
-					
-				}
-				
-				// GBIF genus-only
-				if (!$ok)
-				{
-					// names match exactly
-					if (isset($obj->stored_under_name) && !isset($response->hits[0]->species) && isset($response->hits[0]->genus))
-					{
-						$query = $obj->stored_under_name;
-						$target = $response->hits[0]->genus;
-						
-						echo "-- $query|$target\n";
-									
-						$ok = preg_match('/^' . $target . '/', $query);
-					}
-				}
-				*/
-						
 				if ($ok)
 				{			
 					echo "UPDATE specimen SET gbif=" . $response->hits[0]->key . " WHERE doi='" . $obj->doi . "';" . "\n";

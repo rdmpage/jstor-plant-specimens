@@ -195,6 +195,21 @@ AND specimen.gbif  IS NULL
 AND specimen.herbarium="M";
 ```
 
+Singapore is different because it’s not in GBIF, so had to scrape Brahms in Oxford, then match on barcodes. SING ids become URLs if appended to https://herbaria.plants.ox.ac.uk/bol/sing/record/details/
+
+```
+SELECT "UPDATE specimen SET occurrenceID = """ || barcode.id || """ WHERE doi=""" || specimen.doi || """;" 
+FROM specimen INNER JOIN barcode ON specimen.code = barcode.barcode 
+WHERE specimen.canonical = barcode.canonical
+AND specimen.herbarium="SING";
+
+SELECT "UPDATE specimen SET occurrenceID = """ || barcode.id || """ WHERE doi=""" || specimen.doi || """;" 
+FROM specimen INNER JOIN barcode ON specimen.code = barcode.barcode 
+WHERE specimen.stored_under_name = barcode.canonical
+AND specimen.herbarium="SING";
+
+```
+
 
 ## Matching
 
