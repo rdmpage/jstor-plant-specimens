@@ -1,5 +1,9 @@
 # JSTOR plant specimens
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10044359.svg)](https://doi.org/10.5281/zenodo.10044359)
+
+## Background
+
 JSTOR’s [Global Plants](https://plants.jstor.org) includes a database of plant specimens, many of which are types. While many of these records are in GBIF, many aren’t. The code in this repository scrapes JSTOR to build a list of the specimens it has. The goal is to (a) have a list of what JSTOR has, (b) map those records to the equivalent records in GBIF to discover gaps in GBIF coverage, and (c) make it easier to link to JSTOR plant specimens. 
 
 JSTOR uses a DOI-like identifier, e.g. [10.5555/al.ap.specimen.bm000753002](https://plants.jstor.org/stable/10.5555/al.ap.specimen.bm000753002), where `bm000753002` is a combination of herbarium code (see [Global Plants Partners](https://plants.jstor.org/partners)) and the specimen barcode (barcode in this context is a literal barcode, typically visible on the herbarium sheet).

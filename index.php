@@ -714,7 +714,7 @@ function display_stats()
 	{
 		$herbaria[$obj->herbarium][0] = $obj->c;
 		$herbaria[$obj->herbarium][1] = 0;
-		$herbaria[$obj->herbarium][2] = 0;
+		$herbaria[$obj->herbarium][2] = '';
 		
 		if (isset($notes[$obj->herbarium]))
 		{
