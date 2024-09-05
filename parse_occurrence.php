@@ -27,6 +27,8 @@ $filename = "0008890-230918134249559/occurrence.txt"; // MO
 
 $filename = "0023097-231002084531237/occurrence.txt"; // M
 
+$filename = '0116043-240626123714530/occurrence.txt'; // C
+
 
 $pp = new Parser();
 
@@ -129,6 +131,14 @@ while (!feof($file_handle))
 								$record->barcode = $obj->catalogNumber;
 							}					
 						}
+						break;						
+						
+					// C
+					case '0d1f9cee-7cb7-4d3a-a8c4-d2ca6edcd23b':
+						if (isset($obj->otherCatalogNumbers) && preg_match('/C\d+/', $obj->otherCatalogNumbers))
+						{
+							$record->barcode = $obj->otherCatalogNumbers;
+						}
 						break;
 						
 					// CAS
@@ -200,36 +210,38 @@ while (!feof($file_handle))
 
 				//print_r($record);
 				
-			
-				$keys = array();
-				$values = array();
-
-				foreach ($record as $k => $v)
-				{
-					$keys[] = '"' . $k . '"'; // must be double quotes
-
-					if (is_array($v))
+				if (isset($record->barcode))
+				{				
+					$keys = array();
+					$values = array();
+	
+					foreach ($record as $k => $v)
 					{
-						$values[] = "'" . str_replace("'", "''", json_encode(array_values($v))) . "'";
+						$keys[] = '"' . $k . '"'; // must be double quotes
+	
+						if (is_array($v))
+						{
+							$values[] = "'" . str_replace("'", "''", json_encode(array_values($v))) . "'";
+						}
+						elseif(is_object($v))
+						{
+							$values[] = "'" . str_replace("'", "''", json_encode($v)) . "'";
+						}
+						elseif (preg_match('/^POINT/', $v))
+						{
+							$values[] = "ST_GeomFromText('" . $v . "', 4326)";
+						}
+						else
+						{				
+							$values[] = "'" . str_replace("'", "''", $v) . "'";
+						}					
 					}
-					elseif(is_object($v))
-					{
-						$values[] = "'" . str_replace("'", "''", json_encode($v)) . "'";
-					}
-					elseif (preg_match('/^POINT/', $v))
-					{
-						$values[] = "ST_GeomFromText('" . $v . "', 4326)";
-					}
-					else
-					{				
-						$values[] = "'" . str_replace("'", "''", $v) . "'";
-					}					
+	
+					//$sql = 'INSERT INTO barcode (' . join(",", $keys) . ') VALUES (' . join(",", $values) . ') ON CONFLICT DO NOTHING;';					
+					$sql = 'REPLACE INTO barcode (' . join(",", $keys) . ') VALUES (' . join(",", $values) . ');';					
+					$sql .= "\n";
+					echo $sql;
 				}
-
-				//$sql = 'INSERT INTO barcode (' . join(",", $keys) . ') VALUES (' . join(",", $values) . ') ON CONFLICT DO NOTHING;';					
-				$sql = 'REPLACE INTO barcode (' . join(",", $keys) . ') VALUES (' . join(",", $values) . ');';					
-				$sql .= "\n";
-				echo $sql;
 			}
 		}
 	}	

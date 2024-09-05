@@ -13,12 +13,12 @@ $config['title'] = "JSTOR";
 $config['headings'] = array("doi", "code", "title", "canonical", "type_status", "family", "gbif", "occurrenceID", "herbarium");
 
 $config['genus'] = array();
-$config['genus']['count'] = 'SELECT COUNT(doi) AS c FROM specimen WHERE canonical LIKE <QUERY> AND type_status IS NOT NULL';
+$config['genus']['count'] = 'SELECT COUNT(doi) AS count FROM specimen WHERE canonical LIKE <QUERY> AND type_status IS NOT NULL';
 $config['genus']['list'] = 'SELECT * FROM specimen WHERE canonical LIKE <QUERY>  AND type_status IS NOT NULL ORDER BY canonical';
 $config['genusCoverage'] = 'SELECT doi, gbif, occurrenceUrl, occurrenceID FROM specimen WHERE canonical LIKE <QUERY>  AND type_status IS NOT NULL ORDER BY canonical';
 
 $config['herbarium'] = array();
-$config['herbarium']['count'] = 'SELECT COUNT(doi) AS c FROM specimen WHERE herbarium = <QUERY> AND type_status IS NOT NULL';
+$config['herbarium']['count'] = 'SELECT COUNT(doi) AS count FROM specimen WHERE herbarium = <QUERY> AND type_status IS NOT NULL';
 $config['herbarium']['list'] = 'SELECT * FROM specimen WHERE herbarium = <QUERY> AND type_status IS NOT NULL ORDER BY canonical';
 $config['herbariumCoverage'] = 'SELECT doi, gbif, occurrenceUrl, occurrenceID FROM specimen WHERE herbarium = <QUERY> AND type_status IS NOT NULL ORDER BY canonical';
 
@@ -34,7 +34,8 @@ $notes = array(
 	'BAA' => 'Tropicos Specimens Non-MO but no shared codes',
 	'BCMEX' => 'In GBIF, no shared identifiers',
 	'BKF' => 'Not in GBIF',
-	'C' => 'In GBIF but no shared identifiers, e.g. C10007766 is https://www.gbif.org/occurrence/125812836 (?)',
+	'BOL' => 'In GBIF but no barcodes, e.g. https://www.gbif.org/occurrence/3708592735 is one possible match for BOL136662',
+	'C' => 'Barcodes such as C10007766 may be stored in the "otherCatalogNumbers" field',
 	'CHOCO' => 'In GBIF, no shared identifiers https://www.gbif.org/dataset/26d97e94-6ee9-4d5a-a9b8-7d514ec0345c',
 	'CORD' => 'Multiple codes for same occurrence, e.g. CORD 00005267 | CORD 00005268 | CORD 00005269 <a href="https://www.gbif.org/occurrence/2239102626">https://www.gbif.org/occurrence/2239102626</a>',
 	'EA' => 'Not in GBIF? but publisher is',
@@ -84,6 +85,13 @@ function do_sqlite_query($sql)
 	$stmt = $pdo->query($sql);
 
 	$data = array();
+	
+	if (0)
+	{
+		echo "\n";
+		echo $sql;
+		echo "\n";
+	}
 
 	while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
 
@@ -124,7 +132,7 @@ function do_query($query, $count_sql, $sql, $pageNum = 1)
 	// How many hits?
 	$data = do_sqlite_query($count_sql);
 	
-	$numrows = $data[0]->c;
+	$numrows = $data[0]->count;
 
 	// how many pages we have when using paging?
 	$maxPage = ceil($numrows/$rowsPerPage);
@@ -361,6 +369,33 @@ a:hover {text-decoration: underline;}
 .empty {
 background-color:#FFCC99;
 }
+
+	/* Container for the progress bar */
+	.progress-container {
+		width: 100%;
+		background-color: #f3f3f3;
+		border-radius: 4px;
+		position: relative;
+		height: 20px;
+	}
+
+	/* Progress bar inside the container */
+	.progress-bar {
+		height: 100%;
+		border-radius: 4px;
+		background-color: #BBB;
+		width: 0;
+	}
+
+	/* Percentage label inside the bar */
+	.progress-label {
+		position: absolute;
+		width: 100%;
+		text-align: center;
+		/* color: white; */
+		font-size: 14px;
+		line-height: 20px;
+	}
 
 	</style>';
 	
@@ -683,36 +718,36 @@ function display_stats()
 
 	echo '<div>';
 	
-	$sql = 'SELECT COUNT(doi) AS c FROM specimen WHERE type_status IS NOT NULL';
+	$sql = 'SELECT COUNT(doi) AS count FROM specimen WHERE type_status IS NOT NULL';
 	$data = do_sqlite_query($sql);
 	
 	if (count($data) == 1)
 	{
-		echo "<div>Number of type specimens: <b>" . $data[0]->c . "</b></div>";
+		echo "<div>Number of type specimens: <b>" . $data[0]->count . "</b></div>";
 	}	
 	
-	$total = $data[0]->c;
+	$total = $data[0]->count;
 	
 	// progress
-	$sql = 'SELECT COUNT(doi) AS c FROM specimen WHERE type_status IS NOT NULL';
+	$sql = 'SELECT COUNT(doi) AS count FROM specimen WHERE type_status IS NOT NULL';
 	$sql .= ' AND gbif IS NOT NULL';
 	$data = do_sqlite_query($sql);
 	
 	if (count($data) == 1)
 	{
-		echo "<div>Matched to GBIF: <b>" . $data[0]->c . "</b>";		
-		echo " (" . round($data[0]->c/$total * 100, 0) . "%)";
+		echo "<div>Matched to GBIF: <b>" . $data[0]->count . "</b>";		
+		echo " (" . round($data[0]->count/$total * 100, 0) . "%)";
 		echo "</div>";
 	}	
 
 	$herbaria = array();
 	
-	$sql = 'select count(doi) as c, herbarium from specimen where type_status IS NOT NULL group by herbarium order by c desc;';
+	$sql = 'select count(doi) as count, herbarium from specimen where type_status IS NOT NULL group by herbarium order by count desc;';
 	$data = do_sqlite_query($sql);
 	
 	foreach ($data as $obj)
 	{
-		$herbaria[$obj->herbarium][0] = $obj->c;
+		$herbaria[$obj->herbarium][0] = $obj->count;
 		$herbaria[$obj->herbarium][1] = 0;
 		$herbaria[$obj->herbarium][2] = '';
 		
@@ -722,12 +757,12 @@ function display_stats()
 		}
 	}	
 	
-	$sql = 'select count(doi) as c, herbarium from specimen where gbif is not null and type_status IS NOT NULL group by herbarium order by c desc;';
+	$sql = 'select count(doi) as count, herbarium from specimen where gbif is not null and type_status IS NOT NULL group by herbarium order by count desc;';
 	$data = do_sqlite_query($sql);
 	
 	foreach ($data as $obj)
 	{
-		$herbaria[$obj->herbarium][1] = $obj->c;
+		$herbaria[$obj->herbarium][1] = $obj->count;
 	}	
 	
 	echo '<table>';
@@ -735,10 +770,18 @@ function display_stats()
 	foreach ($herbaria as $k => $v)
 	{
 		echo '<tr>';
-		echo '<td>' . $k . '</td>';
+		echo '<td><a href="?herbarium=' . $k . '">' . $k . '</td>';
 		echo '<td align="right">' . $v[0] . '</td>';		
 		echo '<td align="right">' . $v[1] . '</td>';
-		echo '<td align="right">' . round($v[1]/$v[0] * 100, 0) . '</td>';
+
+		echo '<td width="100">';		
+		echo '<div class="progress-container">';
+        echo '<div class="progress-bar" style="width: ' . round($v[1]/$v[0] * 100, 0) . '%;">';
+        //echo '<span class="progress-label">' . round($v[1]/$v[0] * 100, 0) . '%</span>';
+        echo '</div>';
+        echo '</div>';
+		echo '</td>';
+		
 		echo '<td>' . $v[2] . '</td>';		
 		echo '</tr>';
 	}

@@ -124,6 +124,10 @@ C10007766 is https://www.gbif.org/occurrence/125812836 (I think), no shared iden
 
 Likewise C10017788 is likely https://www.gbif.org/occurrence/125813592 WHY no images?
 
+##### Update 2024-09-05
+
+C now has `otherCatalogNumbers` which have the barcode, so can match on that.
+
 #### F
 
 F0BN009917 matches https://www.gbif.org/occurrence/1211544277, which has institution code ‘B’, so Darwin Core is seriously borked.
@@ -179,8 +183,9 @@ Hyam, R.D., Drinkwater, R.E. & Harris, D.J. Stable citations for herbarium speci
 | herbarium | download | notes | DOI of dataset |
 |--|--|--|
 | | 0001411-231002084531237 |  BODATSA | 10.15468/2aki0q |
-| CAS | 0020513-231002084531237 | CAS Botany (BOT) | 10.15468/7gudyo |
 | BM | 0011098-230918134249559 | | 10.5519/0002965 |
+| C | 0116043-240626123714530 | 10.15468/dl.vhxp88 |
+| CAS | 0020513-231002084531237 | CAS Botany (BOT) | 10.15468/7gudyo |
 | E | 0021070-231002084531237 | | 10.15468/ypoair |
 | G | 0009526-230918134249559 | | 10.15468/rvjdu1 |
 | G-DC | 0024911-231002084531237 | | 10.15468/s5auru |
@@ -196,6 +201,8 @@ Hyam, R.D., Drinkwater, R.E. & Harris, D.J. Stable citations for herbarium speci
 
 ### Bulk matching use SQL
 
+Simple direct match of barcode and name
+
 ```
 SELECT "UPDATE specimen SET gbif = """ || barcode.gbif || """, occurrenceID = """ || barcode.id || """ WHERE doi=""" || specimen.doi || """;" 
 FROM specimen INNER JOIN barcode ON specimen.code = barcode.barcode 
@@ -203,6 +210,18 @@ WHERE specimen.canonical = barcode.scientificName
 AND specimen.gbif  IS NULL
 AND specimen.herbarium="M";
 ```
+
+Direct match on barcode and name specimen is stored under.
+
+```
+SELECT "UPDATE specimen SET gbif = """ || barcode.gbif || """, occurrenceID = """ || barcode.id || """ WHERE doi=""" || specimen.doi || """;" 
+FROM specimen INNER JOIN barcode ON specimen.code = barcode.barcode 
+WHERE specimen.stored_under_name = barcode.scientificName
+AND specimen.gbif  IS NULL
+AND specimen.herbarium="M";
+```
+
+#### Singapore
 
 Singapore is different because it’s not in GBIF, so had to scrape Brahms in Oxford, then match on barcodes. SING ids become URLs if appended to https://herbaria.plants.ox.ac.uk/bol/sing/record/details/
 

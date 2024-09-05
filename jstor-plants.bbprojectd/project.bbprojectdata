@@ -7,12 +7,9 @@
 		<string>99955AA6-F2BE-48D1-8C07-F2F61E03C5BE</string>
 		<string>F31514B8-1624-4EC7-B0E5-8B2BBB54AD8F</string>
 		<string>02605671-4531-43B4-93AA-2C76AA4DEC61</string>
-		<string>36135C4D-5F00-43CF-8518-A4875935BB2E</string>
 		<string>8F2827DC-4723-4123-98E4-88A7E4A95C0F</string>
 		<string>A2254389-5636-4C3B-A18B-0BB8E794ACD0</string>
 		<string>4D38B34A-D1D6-439D-A251-BF9B595C7CC6</string>
-		<string>32BAFB82-F78D-4936-AEC2-81AC0943BC8D</string>
-		<string>E3C892DD-8317-4CC1-9E60-4846AE32E164</string>
 		<string>D44703BF-3CE9-4862-AACC-1856BA7035C8</string>
 		<string>25DE6B97-EF54-49A6-85DB-37CA254889A7</string>
 	</array>
@@ -115,75 +112,6 @@
 			<string>FileReference</string>
 			<key>UserOverrideItemName</key>
 			<true/>
-		</dict>
-		<key>32BAFB82-F78D-4936-AEC2-81AC0943BC8D</key>
-		<dict>
-			<key>ItemData</key>
-			<dict>
-				<key>BookmarkData</key>
-				<data>
-				Ym9va1QDAAAAAAQQMAAAAPrzFhn/RpnPMt+MSLpTDMJs
-				2KnBiQif7f8ULd11Q1CTRAIAAAQAAAADAwAAAAgAKAUA
-				AAABAQAAVXNlcnMAAAAFAAAAAQEAAHJwYWdlAAAACwAA
-				AAEBAABEZXZlbG9wbWVudAAVAAAAAQEAAGpzdG9yLXBs
-				YW50LXNwZWNpbWVucwAAAAQAAAABAQAAanVuawsAAAAB
-				AQAAZmV0Y2hfRy5waHAAGAAAAAEGAAAQAAAAIAAAADAA
-				AABEAAAAZAAAAHAAAAAIAAAABAMAAIRcAAAAAAAACAAA
-				AAQDAACWxgMAAAAAAAgAAAAEAwAAWSklAAAAAAAIAAAA
-				BAMAAGlY9gYAAAAACAAAAAQDAACvMmcHAAAAAAgAAAAE
-				AwAAm0peBwAAAAAYAAAAAQYAAKQAAAC0AAAAxAAAANQA
-				AADkAAAA9AAAAAgAAAAABAAAQcViEP7O408YAAAAAQIA
-				AAEAAAAAAAAADwAAAAAAAAAAAAAAAAAAAAgAAAAEAwAA
-				BAAAAAAAAAAEAAAAAwMAAPUBAAAIAAAAAQkAAGZpbGU6
-				Ly8vDAAAAAEBAABNYWNpbnRvc2ggSEQIAAAABAMAAACQ
-				gpbnAAAACAAAAAAEAABBxVrKo4AAACQAAAABAQAARUVE
-				QkM0OTUtREY1Mi00NTZBLUI0MzEtRkI2MDdCRjA0QUQx
-				GAAAAAECAACBAAAAAQAAAO8TAAABAAAAAAAAAAAAAAAB
-				AAAAAQEAAC8AAAAAAAAAAQUAABoAAAABAQAATlNVUkxE
-				b2N1bWVudElkZW50aWZpZXJLZXkAAAQAAAADAwAAJdsF
-				ANgAAAD+////AQAAAAAAAAARAAAABBAAAIQAAAAAAAAA
-				BRAAAAQBAAAAAAAAEBAAADQBAAAAAAAAQBAAACQBAAAA
-				AAAAAiAAAAACAAAAAAAABSAAAHABAAAAAAAAECAAAIAB
-				AAAAAAAAESAAALQBAAAAAAAAEiAAAJQBAAAAAAAAEyAA
-				AKQBAAAAAAAAICAAAOABAAAAAAAAMCAAAAwCAAAAAAAA
-				AcAAAFQBAAAAAAAAEcAAACAAAAAAAAAAEsAAAGQBAAAA
-				AAAAENAAAAQAAAAAAAAAFAIAgDgCAAAAAAAA
-				</data>
-				<key>FileURL</key>
-				<string>file:///Users/rpage/Development/jstor-plant-specimens/junk/fetch_G.php</string>
-				<key>HasSecurityScope</key>
-				<true/>
-				<key>RelativePath</key>
-				<string>./junk/fetch_G.php</string>
-				<key>TypeID</key>
-				<string>_CFileLocator</string>
-				<key>Version</key>
-				<integer>1</integer>
-			</dict>
-			<key>ItemName</key>
-			<string>fetch_G.php</string>
-			<key>ItemType</key>
-			<string>FileReference</string>
-		</dict>
-		<key>36135C4D-5F00-43CF-8518-A4875935BB2E</key>
-		<dict>
-			<key>ItemData</key>
-			<dict>
-				<key>FileURL</key>
-				<string>file:///Users/rpage/.Trash/specimen.csv</string>
-				<key>HasSecurityScope</key>
-				<true/>
-				<key>RelativePath</key>
-				<string>../../.Trash/specimen.csv</string>
-				<key>TypeID</key>
-				<string>_CFileLocator</string>
-				<key>Version</key>
-				<integer>1</integer>
-			</dict>
-			<key>ItemName</key>
-			<string>specimen.csv</string>
-			<key>ItemType</key>
-			<string>FileReference</string>
 		</dict>
 		<key>4D38B34A-D1D6-439D-A251-BF9B595C7CC6</key>
 		<dict>
@@ -432,55 +360,6 @@
 			<string>FileReference</string>
 			<key>UserOverrideItemName</key>
 			<true/>
-		</dict>
-		<key>E3C892DD-8317-4CC1-9E60-4846AE32E164</key>
-		<dict>
-			<key>ItemData</key>
-			<dict>
-				<key>BookmarkData</key>
-				<data>
-				Ym9va1QDAAAAAAQQMAAAAES5AZNyWC2eV9avs/qjll+t
-				8rA3C9MLgsEDrRxlbavtRAIAAAQAAAADAwAAAAgAKAUA
-				AAABAQAAVXNlcnMAAAAFAAAAAQEAAHJwYWdlAAAACwAA
-				AAEBAABEZXZlbG9wbWVudAAVAAAAAQEAAGpzdG9yLXBs
-				YW50LXNwZWNpbWVucwAAAAEAAAABAQAARwAAAAsAAAAB
-				AQAAcGFyc2VfRy5waHAAGAAAAAEGAAAQAAAAIAAAADAA
-				AABEAAAAZAAAAHAAAAAIAAAABAMAAIRcAAAAAAAACAAA
-				AAQDAACWxgMAAAAAAAgAAAAEAwAAWSklAAAAAAAIAAAA
-				BAMAAGlY9gYAAAAACAAAAAQDAADT0MMHAAAAAAgAAAAE
-				AwAAkqRiBwAAAAAYAAAAAQYAAKQAAAC0AAAAxAAAANQA
-				AADkAAAA9AAAAAgAAAAABAAAQcViY5WLrKAYAAAAAQIA
-				AAEAAAAAAAAADwAAAAAAAAAAAAAAAAAAAAgAAAAEAwAA
-				BAAAAAAAAAAEAAAAAwMAAPUBAAAIAAAAAQkAAGZpbGU6
-				Ly8vDAAAAAEBAABNYWNpbnRvc2ggSEQIAAAABAMAAACQ
-				gpbnAAAACAAAAAAEAABBxVrKo4AAACQAAAABAQAARUVE
-				QkM0OTUtREY1Mi00NTZBLUI0MzEtRkI2MDdCRjA0QUQx
-				GAAAAAECAACBAAAAAQAAAO8TAAABAAAAAAAAAAAAAAAB
-				AAAAAQEAAC8AAAAAAAAAAQUAABoAAAABAQAATlNVUkxE
-				b2N1bWVudElkZW50aWZpZXJLZXkAAAQAAAADAwAAO9sF
-				ANgAAAD+////AQAAAAAAAAARAAAABBAAAIQAAAAAAAAA
-				BRAAAAQBAAAAAAAAEBAAADQBAAAAAAAAQBAAACQBAAAA
-				AAAAAiAAAAACAAAAAAAABSAAAHABAAAAAAAAECAAAIAB
-				AAAAAAAAESAAALQBAAAAAAAAEiAAAJQBAAAAAAAAEyAA
-				AKQBAAAAAAAAICAAAOABAAAAAAAAMCAAAAwCAAAAAAAA
-				AcAAAFQBAAAAAAAAEcAAACAAAAAAAAAAEsAAAGQBAAAA
-				AAAAENAAAAQAAAAAAAAAFAIAgDgCAAAAAAAA
-				</data>
-				<key>FileURL</key>
-				<string>file:///Users/rpage/Development/jstor-plant-specimens/G/parse_G.php</string>
-				<key>HasSecurityScope</key>
-				<true/>
-				<key>RelativePath</key>
-				<string>./G/parse_G.php</string>
-				<key>TypeID</key>
-				<string>_CFileLocator</string>
-				<key>Version</key>
-				<integer>1</integer>
-			</dict>
-			<key>ItemName</key>
-			<string>parse_G.php</string>
-			<key>ItemType</key>
-			<string>FileReference</string>
 		</dict>
 		<key>F31514B8-1624-4EC7-B0E5-8B2BBB54AD8F</key>
 		<dict>
