@@ -389,13 +389,15 @@ $herbarium = 'NY';
 //$herbarium = 'CAS';
 //$herbarium = 'HBG';
 
+$herbarium = 'F';
+
 $sql = 'SELECT * FROM specimen WHERE herbarium="' . $herbarium . '"';
 
 // Done: A
 //$sql = 'SELECT * FROM specimen WHERE herbarium LIKE "C%"';
 $sql .= ' AND type_status IS NOT NULL';
 $sql .= ' AND gbif IS NULL';
-//$sql .= ' LIMIT 10000';
+$sql .= ' LIMIT 1000';
 
 //$sql = 'SELECT * FROM specimen WHERE code="WAG0002980"';
 
@@ -416,6 +418,7 @@ if (0)
 	$code = 'AD95802057';
 	$code = 'MEL95286';
 	$code = 'BISH1001549';
+	$code = 'F0047778F';
 	$sql = 'SELECT * FROM specimen WHERE code="' . $code . '"';
 }
 
@@ -741,5 +744,5 @@ foreach ($data as $obj)
 	
 }
 
-
+echo "Failed\n";
 print_r($failed);

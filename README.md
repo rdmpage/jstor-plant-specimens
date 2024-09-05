@@ -132,6 +132,9 @@ C now has `otherCatalogNumbers` which have the barcode, so can match on that.
 
 F0BN009917 matches https://www.gbif.org/occurrence/1211544277, which has institution code ‘B’, so Darwin Core is seriously borked.
 
+##### Update 2024-09-05
+F0BN is the “Field Museum of Natural History (Botany) - Historical Photographs of Type Specimens from Berlin (B)” dataset https://www.gbif.org/dataset/7377c214-e7f1-4fc0-a9de-3b85728ccc11, match barcode to image file name.
+
 #### G
 
 G00358419 compare with https://www.gbif.org/occurrence/1144699768 (maybe the same thing, but catalog number is `G-G-242139/2`, but see their own database http://www.ville-ge.ch/imagezoom/?fif=cjbiip/cjb19/img_108/G00358418.ptif&cvt=jpeg https://data.gbif.ch/gbif-portal/#/?search_scientificNameQuery=Tarrietia%20amboinensis&search_observation=true&search_recent=true&search_fossil=true&search_living=true&searchPerformed=true&dataDialog=on&dataId=4274293&dataTabIndex=0
