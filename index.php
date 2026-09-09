@@ -13,14 +13,14 @@ $config['title'] = "JSTOR";
 $config['headings'] = array("doi", "code", "title", "canonical", "type_status", "family", "gbif", "occurrenceID", "herbarium");
 
 $config['genus'] = array();
-$config['genus']['count'] = 'SELECT COUNT(doi) AS count FROM specimen WHERE canonical LIKE <QUERY> AND type_status IS NOT NULL';
-$config['genus']['list'] = 'SELECT * FROM specimen WHERE canonical LIKE <QUERY>  AND type_status IS NOT NULL ORDER BY canonical';
-$config['genusCoverage'] = 'SELECT doi, gbif, occurrenceUrl, occurrenceID FROM specimen WHERE canonical LIKE <QUERY>  AND type_status IS NOT NULL ORDER BY canonical';
+$config['genus']['count'] = 'SELECT COUNT(*) AS count FROM specimen WHERE canonical LIKE <QUERY> AND type_status IS NOT NULL';
+$config['genus']['list'] = 'SELECT * FROM specimen WHERE doi IN (SELECT doi FROM specimen WHERE canonical LIKE <QUERY>  AND type_status IS NOT NULL ORDER BY canonical, doi <LIMIT>) ORDER BY canonical, doi';
+$config['genusCoverage'] = 'SELECT gbif IS NOT NULL AS has_gbif, occurrenceUrl IS NOT NULL AS has_url, occurrenceID IS NOT NULL AS has_id FROM specimen WHERE canonical LIKE <QUERY>  AND type_status IS NOT NULL ORDER BY canonical, doi';
 
 $config['herbarium'] = array();
-$config['herbarium']['count'] = 'SELECT COUNT(doi) AS count FROM specimen WHERE herbarium = <QUERY> AND type_status IS NOT NULL';
-$config['herbarium']['list'] = 'SELECT * FROM specimen WHERE herbarium = <QUERY> AND type_status IS NOT NULL ORDER BY canonical';
-$config['herbariumCoverage'] = 'SELECT doi, gbif, occurrenceUrl, occurrenceID FROM specimen WHERE herbarium = <QUERY> AND type_status IS NOT NULL ORDER BY canonical';
+$config['herbarium']['count'] = 'SELECT COUNT(*) AS count FROM specimen WHERE herbarium = <QUERY> AND type_status IS NOT NULL';
+$config['herbarium']['list'] = 'SELECT * FROM specimen WHERE doi IN (SELECT doi FROM specimen WHERE herbarium = <QUERY> AND type_status IS NOT NULL ORDER BY canonical, doi <LIMIT>) ORDER BY canonical, doi';
+$config['herbariumCoverage'] = 'SELECT gbif IS NOT NULL AS has_gbif, occurrenceUrl IS NOT NULL AS has_url, occurrenceID IS NOT NULL AS has_id FROM specimen WHERE herbarium = <QUERY> AND type_status IS NOT NULL ORDER BY canonical, doi';
 
 $pdo = new PDO('sqlite:jstor.db');
 
@@ -145,7 +145,14 @@ function do_query($query, $count_sql, $sql, $pageNum = 1)
 	// counting the offset
 	$offset = ($pageNum - 1) * $rowsPerPage;
 	
-	$sql .= " LIMIT $rowsPerPage OFFSET $offset";
+	if (strpos($sql, '<LIMIT>') !== false)
+	{
+		$sql = str_replace('<LIMIT>', "LIMIT $rowsPerPage OFFSET $offset", $sql);
+	}
+	else
+	{
+		$sql .= " LIMIT $rowsPerPage OFFSET $offset";
+	}
 	
 	$query_result = new stdclass;
 	$query_result->query = $query;
@@ -226,7 +233,7 @@ function display_genus($query, $pageNum = 1)
 	display_pagination('genus', $q);
 	display_page($q);
 	display_pagination('genus', $q);
-	display_coverage('genusCoverage', $query_string);
+	display_coverage('genusCoverage', $query_string, 'genus', $query);
 
 	display_bottom();
 }
@@ -272,7 +279,7 @@ function display_herbarium($query, $pageNum = 1)
 	display_pagination('herbarium', $q);
 	display_page($q);
 	display_pagination('herbarium', $q);
-	display_coverage('herbariumCoverage', $query_string);
+	display_coverage('herbariumCoverage', $query_string, 'herbarium', $query);
 
 	display_bottom();
 }
@@ -438,73 +445,171 @@ function display_search_box($mode = "genus", $query="")
 	';
 }
 
-
 //--------------------------------------------------------------------------------------------------
-function display_coverage($facet, $query)
+// Coverage strip: one tile per specimen, in the same order as the paged result list.
+//
+// Tiles sit on a fixed grid, so a tile's position alone identifies its row in the result set --
+// tile n is result n, which lives on page floor(n / $rowsPerPage) + 1. That means no per-tile <a>
+// is needed: the strip is one <path> per coverage level plus a single click handler. For a
+// herbarium like K that is a handful of DOM nodes rather than 360,429, and ~61 KB gzipped rather
+// than 557 KB.
+//
+// The paths use relative moves ("m14 0h12v12h-12z") rather than absolute ones because consecutive
+// tiles then emit an identical token, which compresses roughly 5x better.
+//
+// This depends on the coverage query and the list query returning rows in the same order, which is
+// why both end in "ORDER BY canonical, doi" -- canonical alone is not unique, and two queries are
+// free to break ties differently.
+function display_coverage($facet, $query, $term, $term_value)
 {
 	global $config;
-	
-	if (isset($config[$facet]))
-	{	
-		$sql = $config[$facet];
-	
-		$sql = str_replace('<QUERY>', quote_string($query), $sql);
-	
-		//echo $sql;
-	
-		$data = do_sqlite_query($sql);
-	
-		echo '<h3>Coverage of "' . $query . '"</h3>';
-	
-		echo '<div>';
-	
-		foreach ($data as $obj)
-		{
-			echo '<div style="float:left;width:14px;height:14px;">';
-		
-			$title = array();
-		
-			$opacity = 0.1;
-			
-				
-			if (isset($obj->gbif))
-			{
-				$opacity += 0.2;
-				$title[] = 'gbif';
-			}
+	global $pdo;
+	global $rowsPerPage;
 
-			if (isset($obj->occurrenceUrl))
-			{
-				$opacity += 0.2;
-				$title[] = 'occurrenceUrl';
-			}
-
-			if (isset($obj->occurrenceID))
-			{
-				$opacity += 0.2;
-				$title[] = 'occurrenceID';
-			}
-		
-			//echo '<a href="' . $config['root'] . '?id=' . urlencode($obj->doi) . '" title="' . join(",", $title) . '">';						
-			echo '<a href="https://plants.jstor.org/stable/' . $obj->doi . '" target="_new" " title="' . join(",", $title) . '">';
-		
-			echo '<div style="width:12px;height:12px;background-color:green;margin:1px;';
-		
-		
-			echo 'opacity:' . $opacity;
-			echo '">';
-			echo '</div>';
-		
-			echo '</a>';
-		
-		
-			echo '</div>';
-	
-		}
-	
-		echo '</div>';
+	if (!isset($config[$facet]))
+	{
+		return;
 	}
 
+	$sql = str_replace('<QUERY>', quote_string($query), $config[$facet]);
+
+	$perRow = 90;	// tiles per row
+	$pitch  = 14;	// grid spacing
+	$box    = 12;	// drawn square
+
+	// Which identifiers a tile has, as a bitmask. Kept as a bitmask rather than a plain count so
+	// the tooltip can still name them, the way the old per-tile title attribute did.
+	$flags = array('has_gbif', 'has_url', 'has_id');
+
+	$paths  = array();	// bitmask => path data
+	$last   = array();	// bitmask => [x, y] of the previous tile drawn at that level
+	$status = '';		// one hex digit per tile, read by the tooltip
+	$n = 0;
+
+	$stmt = $pdo->query($sql);
+
+	while ($row = $stmt->fetch(\PDO::FETCH_ASSOC))
+	{
+		$bits = 0;
+		foreach ($flags as $b => $f)
+		{
+			if (!empty($row[$f]))
+			{
+				$bits |= (1 << $b);
+			}
+		}
+
+		$x = ($n % $perRow) * $pitch;
+		$y = (int)($n / $perRow) * $pitch;
+
+		if (!isset($paths[$bits]))
+		{
+			$paths[$bits] = 'M' . $x . ' ' . $y . 'h' . $box . 'v' . $box . 'h-' . $box . 'z';
+		}
+		else
+		{
+			$paths[$bits] .= 'm' . ($x - $last[$bits][0]) . ' ' . ($y - $last[$bits][1])
+				. 'h' . $box . 'v' . $box . 'h-' . $box . 'z';
+		}
+
+		$last[$bits] = array($x, $y);
+		$status .= dechex($bits);
+		$n++;
+	}
+
+	if ($n == 0)
+	{
+		return;
+	}
+
+	$width  = $perRow * $pitch;
+	$height = (int)ceil($n / $perRow) * $pitch;
+
+	echo '<h3>Coverage of "' . htmlspecialchars($query) . '"</h3>';
+
+	echo '<p style="font-size:0.9em;color:#666;">Each tile is one specimen, shaded by how many identifiers it has. Click a tile to jump to the page of results holding it.</p>';
+
+	echo '<svg id="coverage" xmlns="http://www.w3.org/2000/svg"'
+		. ' viewBox="0 0 ' . $width . ' ' . $height . '"'
+		. ' style="width:100%;max-width:' . $width . 'px;height:auto;cursor:pointer;"'
+		. ' data-perrow="' . $perRow . '"'
+		. ' data-pitch="' . $pitch . '"'
+		. ' data-total="' . $n . '"'
+		. ' data-perpage="' . $rowsPerPage . '"'
+		. ' data-base="' . htmlspecialchars($config['root'] . '?' . $term . '=' . urlencode($term_value)) . '"'
+		. ' data-status="' . $status . '">';
+
+	ksort($paths);
+
+	foreach ($paths as $bits => $d)
+	{
+		// Same shading as before: 0.1, plus 0.2 for each identifier present.
+		$opacity = 0.1 + 0.2 * substr_count(decbin($bits), '1');
+
+		echo '<path fill="green" opacity="' . $opacity . '" d="' . $d . '"/>';
+	}
+
+	echo '</svg>';
+
+	echo '<div id="coverage-tip" style="display:none;position:absolute;z-index:10;pointer-events:none;'
+		. 'background:rgba(0,0,0,0.8);color:white;padding:4px 8px;border-radius:4px;font-size:0.8em;white-space:nowrap;"></div>';
+
+	echo <<<'SCRIPT'
+<script>
+(function () {
+	var svg = document.getElementById('coverage');
+	var tip = document.getElementById('coverage-tip');
+	if (!svg) { return; }
+
+	var perRow  = +svg.getAttribute('data-perrow');
+	var pitch   = +svg.getAttribute('data-pitch');
+	var total   = +svg.getAttribute('data-total');
+	var perPage = +svg.getAttribute('data-perpage');
+	var base    = svg.getAttribute('data-base');
+	var status  = svg.getAttribute('data-status');
+	var labels  = ['gbif', 'occurrenceUrl', 'occurrenceID'];
+
+	// Tile index from a mouse position: the grid is regular, so this is arithmetic rather than
+	// a hit test against 120,000 elements.
+	function indexAt(evt) {
+		var pt = svg.createSVGPoint();
+		pt.x = evt.clientX;
+		pt.y = evt.clientY;
+		var p = pt.matrixTransform(svg.getScreenCTM().inverse());
+		var col = Math.floor(p.x / pitch);
+		var row = Math.floor(p.y / pitch);
+		if (col < 0 || col >= perRow || row < 0) { return -1; }
+		var i = row * perRow + col;
+		return (i < total) ? i : -1;
+	}
+
+	function pageOf(i) { return Math.floor(i / perPage) + 1; }
+
+	svg.addEventListener('click', function (e) {
+		var i = indexAt(e);
+		if (i < 0) { return; }
+		window.location = base + '&page=' + pageOf(i);
+	});
+
+	svg.addEventListener('mousemove', function (e) {
+		var i = indexAt(e);
+		if (i < 0) { tip.style.display = 'none'; return; }
+		var bits = parseInt(status.charAt(i), 16);
+		var got = [];
+		for (var b = 0; b < labels.length; b++) {
+			if (bits & (1 << b)) { got.push(labels[b]); }
+		}
+		tip.textContent = '#' + (i + 1) + ' → page ' + pageOf(i)
+			+ ' — ' + (got.length ? got.join(', ') : 'no identifiers');
+		tip.style.display = 'block';
+		tip.style.left = (e.pageX + 14) + 'px';
+		tip.style.top  = (e.pageY + 14) + 'px';
+	});
+
+	svg.addEventListener('mouseleave', function () { tip.style.display = 'none'; });
+}());
+</script>
+SCRIPT;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -718,64 +823,68 @@ function display_bottom()
 }
 
 //--------------------------------------------------------------------------------------------------
+// Per-herbarium type and GBIF-match counts.
+//
+// One pass over the covering index specimen_stats(herbarium, type_status, gbif), which keeps this
+// off the specimen table itself. COUNT(*) rather than COUNT(doi) matters: doi is not in the index,
+// so asking for it forces a row lookup per record and the query goes back to taking seconds.
+//
+// Note this deliberately does not go through do_sqlite_query(), which drops values that loosely
+// compare equal to '' -- on PHP 7 that would silently discard every count of 0.
+function get_stats()
+{
+	global $pdo;
+	global $notes;
+
+	$sql = 'SELECT herbarium, COUNT(*) AS types, COUNT(gbif) AS gbif FROM specimen'
+		. ' WHERE type_status IS NOT NULL GROUP BY herbarium ORDER BY types DESC';
+
+	$herbaria = array();
+
+	$stats = new stdclass;
+	$stats->total = 0;
+	$stats->matched = 0;
+
+	foreach ($pdo->query($sql, \PDO::FETCH_ASSOC) as $row)
+	{
+		$herbarium = $row['herbarium'];
+
+		$herbaria[$herbarium] = array(
+			(int)$row['types'],
+			(int)$row['gbif'],
+			isset($notes[$herbarium]) ? $notes[$herbarium] : ''
+		);
+
+		$stats->total   += (int)$row['types'];
+		$stats->matched += (int)$row['gbif'];
+	}
+
+	$stats->herbaria = $herbaria;
+
+	return $stats;
+}
+
+//--------------------------------------------------------------------------------------------------
 function display_stats()
 {
 	global $config;
-	global $notes;
-	
+
+	$stats = get_stats();
 
 	echo '<div>';
-	
-	$sql = 'SELECT COUNT(doi) AS count FROM specimen WHERE type_status IS NOT NULL';
-	$data = do_sqlite_query($sql);
-	
-	if (count($data) == 1)
-	{
-		echo "<div>Number of type specimens: <b>" . $data[0]->count . "</b></div>";
-	}	
-	
-	$total = $data[0]->count;
-	
-	// progress
-	$sql = 'SELECT COUNT(doi) AS count FROM specimen WHERE type_status IS NOT NULL';
-	$sql .= ' AND gbif IS NOT NULL';
-	$data = do_sqlite_query($sql);
-	
-	if (count($data) == 1)
-	{
-		echo "<div>Matched to GBIF: <b>" . $data[0]->count . "</b>";		
-		echo " (" . round($data[0]->count/$total * 100, 0) . "%)";
-		echo "</div>";
-	}	
 
-	$herbaria = array();
-	
-	$sql = 'select count(doi) as count, herbarium from specimen where type_status IS NOT NULL group by herbarium order by count desc;';
-	$data = do_sqlite_query($sql);
-	
-	foreach ($data as $obj)
+	echo "<div>Number of type specimens: <b>" . $stats->total . "</b></div>";
+
+	echo "<div>Matched to GBIF: <b>" . $stats->matched . "</b>";
+	if ($stats->total > 0)
 	{
-		$herbaria[$obj->herbarium][0] = $obj->count;
-		$herbaria[$obj->herbarium][1] = 0;
-		$herbaria[$obj->herbarium][2] = '';
-		
-		if (isset($notes[$obj->herbarium]))
-		{
-			$herbaria[$obj->herbarium][2] = $notes[$obj->herbarium];
-		}
-	}	
-	
-	$sql = 'select count(doi) as count, herbarium from specimen where gbif is not null and type_status IS NOT NULL group by herbarium order by count desc;';
-	$data = do_sqlite_query($sql);
-	
-	foreach ($data as $obj)
-	{
-		$herbaria[$obj->herbarium][1] = $obj->count;
-	}	
-	
+		echo " (" . round($stats->matched / $stats->total * 100, 0) . "%)";
+	}
+	echo "</div>";
+
 	echo '<table>';
 	echo '<tr><th>Herbarium</th><th>Types</th><th>GBIF</th><th>%</th><th>Notes</th></tr>';
-	foreach ($herbaria as $k => $v)
+	foreach ($stats->herbaria as $k => $v)
 	{
 		echo '<tr>';
 		echo '<td><a href="?herbarium=' . $k . '">' . $k . '</td>';

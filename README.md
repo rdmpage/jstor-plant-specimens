@@ -54,6 +54,60 @@ Once downloaded the web pages are parsed to extract basic metadata. Taxonomic na
 
 The SQLite database has two tables. `specimen` contains the JSTOR record and any mapping I’ve made to GBIF and/or diretcly to the source herbarium. `barcode` hold records from GBIF where I have extracted barcodes that might not be obvious, such as barcodes that are embedded in image URLs but not in the occurrence record. The `barcode` is used for SQL queries that attempt to directly match JSTOR and GBIF barcodes.
 
+### Index required by the home page
+
+The home page summary (types and GBIF matches per herbarium) is a single grouped query. It depends on
+a covering index, without which it falls back to a full scan of `specimen` and takes ~18 seconds:
+
+```sql
+CREATE INDEX IF NOT EXISTS specimen_stats ON specimen(herbarium, type_status, gbif);
+```
+
+Recreate this after rebuilding the database. The query must use `COUNT(*)`, not `COUNT(doi)` --
+`doi` is not in the index, so selecting it forces a row lookup per record and loses the benefit.
+The same applies to the paging counts in `$config[...]['count']`.
+
+### Indexes required by the listing pages
+
+```sql
+CREATE INDEX IF NOT EXISTS specimen_page ON specimen(
+  herbarium, type_status, canonical, doi,
+  gbif IS NOT NULL, occurrenceUrl IS NOT NULL, occurrenceID IS NOT NULL);
+
+CREATE INDEX IF NOT EXISTS specimen_page_c ON specimen(
+  canonical, doi, type_status,
+  gbif IS NOT NULL, occurrenceUrl IS NOT NULL, occurrenceID IS NOT NULL);
+```
+
+These carry the three `IS NOT NULL` expressions rather than the columns themselves, because the
+coverage strip only needs to know *whether* each identifier is present, and `occurrenceUrl` /
+`occurrenceID` hold long URLs that would bloat the index. The coverage queries select those exact
+expressions so they can be answered from the index alone. Together the two indexes add ~270 MB.
+
+Two rules keep the listing pages fast, and breaking either silently costs seconds per page:
+
+- Coverage queries must select `gbif IS NOT NULL AS has_gbif` etc., not the raw columns. Selecting
+  a raw column forces a table lookup per row -- 7.6s instead of 0.1s for a herbarium like K.
+- List queries must sort keys first and fetch rows second, via
+  `WHERE doi IN (SELECT doi ... ORDER BY canonical, doi LIMIT n OFFSET m)`. Sorting `SELECT *`
+  directly reads every matching row off disk only to discard all but 20 -- 20s instead of 0.03s.
+  `do_query()` substitutes the page window into the `<LIMIT>` placeholder inside the subquery.
+
+### Coverage strip
+
+The coverage strip under a genus or herbarium listing draws one tile per specimen, in the same order
+as the paged result list. Clicking a tile goes to the page of results containing that specimen.
+
+Tiles are on a fixed grid, so a tile's position alone gives its row in the result set -- tile *n* is
+result *n*, on page `floor(n / rowsPerPage) + 1`. Nothing is stored per tile, so the strip is one
+`<path>` per coverage level plus a single click handler rather than an anchor per specimen. For a
+large herbarium such as K (120,143 types) that is the difference between 31 MB / 360,429 DOM nodes
+and 2 MB / a handful.
+
+This relies on the coverage query and the list query returning rows in the same order, which is why
+both end in `ORDER BY canonical, doi`. `canonical` alone is not unique -- 49,063 of K's rows share
+one with another row -- and two queries are free to break those ties differently.
+
 ## Mapping JSTOR identifiers to GBIF
 
 To explore links between JSTOR and GBIF I use [Material Examined](https://material-examined.herokuapp.com), which attempts to map specimen codes to GBIF records. Below I’ve made notes on how successful this is, and which Herbaria codes require additional work to resolve. Some GBIF records also include a collection-specific URL for the specimen (see, e.g., [CETAF Specimen URI Tester](http://herbal.rbge.info/), which we could also extract. This would enable direct linking to the herbarium web site.
