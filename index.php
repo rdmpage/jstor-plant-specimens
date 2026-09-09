@@ -8,7 +8,7 @@ error_reporting(E_ALL);
 
 $config = array();
 
-$config['root'] = "/index.php";
+$config['root'] = "./";
 $config['title'] = "JSTOR";
 $config['headings'] = array("doi", "code", "title", "canonical", "type_status", "family", "gbif", "occurrenceID", "herbarium");
 
