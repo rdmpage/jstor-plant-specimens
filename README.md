@@ -6,7 +6,7 @@
 
 JSTOR’s [Global Plants](https://plants.jstor.org) includes a database of plant specimens, many of which are types. While many of these records are in GBIF, many aren’t. The code in this repository scrapes JSTOR to build a list of the specimens it has. The goal is to (a) have a list of what JSTOR has, (b) map those records to the equivalent records in GBIF to discover gaps in GBIF coverage, and (c) make it easier to link to JSTOR plant specimens. 
 
-JSTOR uses a DOI-like identifier, e.g. [10.5555/al.ap.specimen.bm000753002](https://plants.jstor.org/stable/10.5555/al.ap.specimen.bm000753002), where `bm000753002` is a combination of herbarium code (see [Global Plants Partners](https://plants.jstor.org/partners)) and the specimen barcode (barcode in this context is a literal barcode, typically visible on the herbarium sheet).
+JSTOR uses a DOI-like identifier, e.g. [10.5555/al.ap.specimen.bm000753002](https://plants.jstor.org/stable/10.5555/al.ap.specimen.bm000753002), where `bm000753002` is a combination of herbarium code (see [Global Plants Partners](https://plants.jstor.org/partners)) and the specimen barcode (“barcode” in this context is a literal barcode, typically visible on the herbarium sheet).
 
 ## Challenges
 
@@ -27,7 +27,7 @@ https://science.mnhn.fr/institution/um/collection/mpu/item/mpu015018 has link to
 
 ## GBIF Downloads
 
-Experience some problems with GBIF downloads [Downloads failing to include all files in the archive](https://discourse.gbif.org/t/downloads-failing-to-include-all-files-in-the-archive/4159/15), turns out it’s likely a Safari bug for big zip files, so make sure to download files directly, e.g. using `curl`.
+Experienced some problems with GBIF downloads [Downloads failing to include all files in the archive](https://discourse.gbif.org/t/downloads-failing-to-include-all-files-in-the-archive/4159/15), turns out it’s likely a Safari bug for big zip files, so make sure to download files directly, e.g. using `curl`.
 
 ## Reading
 
@@ -49,6 +49,10 @@ JSTOR, naturally, doesn’t encourage scraping, nor does it make the data availa
 ## Parsing
 
 Once downloaded the web pages are parsed to extract basic metadata. Taxonomic names are parsed using `taxon_name_parser.php` and the data is loaded into a SQLite database.
+
+## Database structure
+
+The SQLite database has two tables. `specimen` contains the JSTOR record and any mapping I’ve made to GBIF and/or diretcly to the source herbarium. `barcode` hold records from GBIF where I have extracted barcodes that might not be obvious, such as barcodes that are embedded in image URLs but not in the occurrence record. The `barcode` is used for SQL queries that attempt to directly match JSTOR and GBIF barcodes.
 
 ## Mapping JSTOR identifiers to GBIF
 
@@ -202,7 +206,7 @@ Hyam, R.D., Drinkwater, R.E. & Harris, D.J. Stable citations for herbarium speci
 | US | 0005866-230918134249559 | | 10.15468/hnhrg3 |
 | | | | |
 
-### Bulk matching use SQL
+### Bulk matching using SQL
 
 Simple direct match of barcode and name
 
@@ -244,7 +248,7 @@ AND specimen.herbarium="SING";
 
 ## Matching
 
-In matching records by default I am trying to match BARCODE labels in JSTOR with equivalent information in GBIF. As a check we can also compare taxonomic names, but this gets tricky as specimen may be stored more than one name, the names may vary between JSTOR and GBIF, and simple string comparison can be defeated by things such as gender changes. We do some simple stemming to try and catch these.
+In matching records by default I am trying to match BARCODE labels in JSTOR with equivalent information in GBIF. As a check we can also compare taxonomic names, but this gets tricky as specimen may be stored under more than one name, the names may vary between JSTOR and GBIF, and simple string comparison can be defeated by things such as gender changes. We do some simple stemming to try and catch these.
 
 Boyle, B., Hopkins, N., Lu, Z. et al. The taxonomic name resolution service: an online tool for automated standardization of plant names. BMC Bioinformatics 14, 16 (2013). https://doi.org/10.1186/1471-2105-14-16
 
@@ -279,10 +283,11 @@ AND specimen.herbarium="US";
 
 ### Image matching
 
-Since JSTOR has images, and so does GBIF (mostly) we could also use image matching to check matches are correct. We can access JSTOR thumbnails (full images are typically behind a paywall), and gBIF images are freely available. Need simple way to test whether images are the “same”. See https://stackoverflow.com/questions/23982960/fast-and-efficient-way-to-detect-if-two-images-are-visually-identical-in-python as a starting point, especially https://stackoverflow.com/a/73760220
+Since JSTOR has images, and so does GBIF (mostly) we could also use image matching to check matches are correct. We can access JSTOR thumbnails (full images are typically behind a paywall), and GBIF images are freely available. Need simple way to test whether images are the “same”. See https://stackoverflow.com/questions/23982960/fast-and-efficient-way-to-detect-if-two-images-are-visually-identical-in-python as a starting point, especially https://stackoverflow.com/a/73760220
 
 ```
 compare -metric phash a00277411.jpg 277411.jpg -compose src delta.png
+```
 
 
 ## Stats

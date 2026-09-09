@@ -1,9 +1,11 @@
 
-/downloads/
+/downloads/**
+!/downloads/README.md
 
 jstor.db
 jstor.db-shm
 jstor.db-wal
 .DS_Store
+*.sql
 
 /junk/

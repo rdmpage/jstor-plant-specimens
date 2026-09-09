@@ -397,7 +397,7 @@ $sql = 'SELECT * FROM specimen WHERE herbarium="' . $herbarium . '"';
 //$sql = 'SELECT * FROM specimen WHERE herbarium LIKE "C%"';
 $sql .= ' AND type_status IS NOT NULL';
 $sql .= ' AND gbif IS NULL';
-$sql .= ' LIMIT 1000';
+$sql .= ' LIMIT 10000';
 
 //$sql = 'SELECT * FROM specimen WHERE code="WAG0002980"';
 

@@ -39,19 +39,22 @@ $notes = array(
 	'CHOCO' => 'In GBIF, no shared identifiers https://www.gbif.org/dataset/26d97e94-6ee9-4d5a-a9b8-7d514ec0345c',
 	'CORD' => 'Multiple codes for same occurrence, e.g. CORD 00005267 | CORD 00005268 | CORD 00005269 <a href="https://www.gbif.org/occurrence/2239102626">https://www.gbif.org/occurrence/2239102626</a>',
 	'EA' => 'Not in GBIF? but publisher is',
-	'F' => 'F0BN009917 matches https://www.gbif.org/occurrence/1211544277, which has institution code "B", so Darwin Core is seriously borked',
+	'F' => 'F0BN009917 matches <a href="https://www.gbif.org/occurrence/1211544277">https://www.gbif.org/occurrence/1211544277</a>, which has institution code "B", there are at least two Field Museum datasets, one based on specimens in Berlin',
 	'FI' => 'Not in GBIF',
 	'G' => 'Get via direct download which has barcodes, then match on catalogue number',
 	//'GOET' => 'Not in GBIF',
 	'H' => 'Some in GBIF, but unclear and weird URLs that don\'t work (or do they?), e.g. <a href="http://id.luomus.fi/HA.H3300009" target="_new">http://id.luomus.fi/HA.H3300009</a>',
 	'HAL' => 'Not in GBIF, but direct via JACQ, e.g. <a href="https://hal.jacq.org/HAL0099901">https://hal.jacq.org/HAL0099901</a>',
-	'HUA' => 'In GBIF but no shared identifiers',
+	'HUA' => 'In GBIF but no shared identifiers, see also Tropicos Specimens Non-MO',
 	'IFAN' => 'Not in GBIF',
 	'KEP' => 'Not in GBIF',
 	'LE' => 'Tropicos Specimens Non-MO but no shared codes',
 	'LISC' => 'Different images of same specimens',
 	'LIL' => 'Not in GBIF',
 	'LINN' => 'Not in GBIF',
+	'LISU' => 'Not in GBIF but some non-MO Tropicos e.g. LISU208876 matches <a href="https://www.gbif.org/occurrence/4061604832">https://www.gbif.org/occurrence/4061604832</a>.',
+	'LP' => 'In GBIF (<a href="https://www.gbif.org/dataset/b4a37621-7556-4705-9349-ede261feebe4">Colección de Herbario LP</a>) but collection and inst not LP, e.g. LP000984 matches <a href="https://www.gbif.org/occurrence/900144540">https://www.gbif.org/occurrence/900144540</a>.',
+
 	'M' => 'Match using download',
 	'MO' => 'Match on image URL using download',
 	'MU' => 'Not in GBIF',
@@ -62,11 +65,13 @@ $notes = array(
 	'S' => 'Not in GBIF?',
 	'SI' => 'No types in GBIF?',
 	'SAM' => 'Not in GBIF',
+	'SEL' => 'Some specimens in Tropicos Specimens Non-MO',
 	'SBBG' => 'JSTOR codes in Darwin Core records',
 	'SING' => 'Not in GBIF, hosted by Oxford, maybe direct download',
 	'SGO' => 'Not in GBIF?',
 	'SP' => 'In GBIF but no barcodes to match on',
 	'TCD' => 'Not in GBIF?',
+	'TUB' => 'Not in GBIF',
 	'UC' => 'Not in GBIF',
 	'US' => 'Match on image URL using download',
 	'UVAL' => 'In GBIF via MOBOT, barcodes are collector numbers(!)',
@@ -261,7 +266,8 @@ function display_herbarium($query, $pageNum = 1)
 	{
 		echo '<p>' . $notes[$query] . '</p>';
 	}
-	echo '<p><a href="https://empty-opal.glitch.me/?q=' . $query . '" target="_new">Where is the damned collection?</a></p>';
+	// Glitch is gone now
+	//echo '<p><a href="https://empty-opal.glitch.me/?q=' . $query . '" target="_new">Where is the damned collection?</a></p>';
 		
 	display_pagination('herbarium', $q);
 	display_page($q);

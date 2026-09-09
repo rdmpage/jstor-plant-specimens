@@ -2,6 +2,7 @@
 *.tsv filter=lfs diff=lfs merge=lfs -text
 *.zip filter=lfs diff=lfs merge=lfs -text
 
+/downloads export-ignore
 /G export-ignore
 /images export-ignore
 /reading export-ignore
