@@ -485,7 +485,8 @@ function display_coverage($facet, $query)
 				$title[] = 'occurrenceID';
 			}
 		
-			echo '<a href="' . $config['root'] . '?id=' . urlencode($obj->doi) . '" title="' . join(",", $title) . '">';
+			//echo '<a href="' . $config['root'] . '?id=' . urlencode($obj->doi) . '" title="' . join(",", $title) . '">';						
+			echo '<a href="https://plants.jstor.org/stable/' . $obj->doi . '" target="_new" " title="' . join(",", $title) . '">';
 		
 			echo '<div style="width:12px;height:12px;background-color:green;margin:1px;';
 		
@@ -567,7 +568,8 @@ function display_page($q)
 				switch ($k)
 				{				
 					case 'doi':
-						echo '<a href="' . $config['root'] . '?id=' . urlencode($hit->{$k}) . '">' . $hit->{$k} . '</a>';
+						//echo '<a href="' . $config['root'] . '?id=' . urlencode($hit->{$k}) . '">' . $hit->{$k} . '</a>';						
+						echo '<a href="https://plants.jstor.org/stable/' . $hit->{$k} . '" target="_new">' . $hit->{$k} . '</a>';
 						break;					
 
 					case 'code':
@@ -887,12 +889,6 @@ function main()
 		display_herbarium($herbarium, $pageNum);
 	}
 	
-	if (isset($_GET['id']))
-	{	
-		$id = $_GET['id'];
-		display_id($id);
-	}
-
 
 }
 
