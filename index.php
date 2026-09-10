@@ -678,7 +678,7 @@ function display_page($q)
 						break;					
 
 					case 'code':
-						echo '<a href="http://localhost/material-examined/?q=' . urlencode($hit->{$k}) . '" target="_new">' . $hit->{$k} . '</a>';
+						echo '<a href="https://iphylo.org/material-examined/?q=' . urlencode($hit->{$k}) . '" target="_new">' . $hit->{$k} . '</a>';
 						break;					
 
 					case 'gbif':
